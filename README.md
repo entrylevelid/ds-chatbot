@@ -1,42 +1,62 @@
-# ds-chatbot
 A Flask-based chatbot utilizing Ollama and the Deepseek model to generate more accurate AI responses. This project allows users to interact with the chatbot locally with easy deployment through Flask.
 
+## 🚀 How to Run
 
-Agar pengguna lain bisa mengikuti dengan mudah, buat file README.md dengan isi seperti ini:
+### 1️⃣ Requirements
 
-md
-Copy
-Edit
-# Flask-Ollama Chatbot
+- Python 3.8 or newer
+- Ollama installed and accessible from the terminal
+- Git and pip installed
 
-Sebuah chatbot berbasis Flask yang menggunakan Ollama untuk menjalankan model AI.
+### 2️⃣ Clone the Repository
 
-## 🚀 Cara Menjalankan
+Run the following command in your terminal:
 
-### 1️⃣ **Persyaratan**
-- Python 3.8 atau lebih baru
-- Ollama sudah terinstal di sistem (`ollama` harus bisa diakses dari terminal)
-- Git dan pip sudah terinstal
-
-### 2️⃣ **Clone Repositori**
-Jalankan perintah berikut di terminal:
-
-```bash
+```sh
 git clone https://github.com/username/flask-ollama-chatbot.git
 cd flask-ollama-chatbot
+```
 
-3️⃣ Buat Virtual Environment
-Untuk menghindari konflik dependensi, buat environment virtual:
+### 3️⃣ Create a Virtual Environment
+
+To avoid dependency conflicts, create a virtual environment:
+
+```sh
 python -m venv venv
-source venv/bin/activate  # Mac/Linux
-venv\Scripts\activate      # Windows
+```
 
-4️⃣ Instal Dependensi
-Jalankan perintah:
+Activate the virtual environment:
+
+- **Mac/Linux**:
+  ```sh
+  source venv/bin/activate
+  ```
+- **Windows**:
+  ```sh
+  venv\Scripts\activate
+  ```
+
+### 4️⃣ Install Dependencies
+
+Run the following command:
+
+```sh
 pip install -r requirements.txt
+```
 
-5️⃣ Menjalankan Aplikasi
-Setelah semua terinstal, jalankan:
-flask run atau python app.py
+### 5️⃣ Run the Application
 
-Aplikasi akan berjalan di http://127.0.0.1:5000
+Once everything is installed, start the application:
+
+```sh
+flask run
+```
+
+Or alternatively:
+
+```sh
+python app.py
+```
+
+The application will run at: [http://127.0.0.1:5000](http://127.0.0.1:5000)
+
