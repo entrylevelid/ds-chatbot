@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xypher</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/cs.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/prism.css') }}">
+</head>
+<body>
+    <div class="welcome-text">
+        Welcome
+    </div>
+
+    <div class="container">
+        <main>
+            <div class="chat-card">
+                <div class="chat-header">
+                    <div class="chat-title">
+                        <div class="chat-avatar">A</div>
+                        <h1>My Assistant</h1>
+                    </div>
+                    <div class="chat-status">
+                        <span class="status-dot"></span>
+                        Online
+                    </div>
+                </div>
+                <div class="chat-container">
+                    <div class="messages" id="messages">
+                        <div class="message assistant">
+                            <div class="message-content">Hai, Ada yang bisa dibantu?</div>
+                        </div>
+                    </div>
+                    <form id="chat-form" class="input-container">
+                        <textarea 
+                            id="user-input" 
+                            placeholder="Type your message here..."
+                            rows="1"
+                        ></textarea>
+                        <button type="submit" id="send-button" disabled>Send</button>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="{{ url_for('static', filename='js/prism.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
