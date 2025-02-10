@@ -13,8 +13,8 @@ A Flask-based chatbot utilizing Ollama and the Deepseek model to generate more a
 Run the following command in your terminal:
 
 ```sh
-git clone https://github.com/username/flask-ollama-chatbot.git
-cd flask-ollama-chatbot
+git clone https://github.com/xadriantech/ds-chatbot.git
+cd ds-chatbot
 ```
 
 ### 3️⃣ Create a Virtual Environment
