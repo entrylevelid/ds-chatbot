@@ -1,88 +1,22 @@
-/* PrismJS 1.29.0
-https://prismjs.com/download.html#themes=prism-dark&languages=markup+css+clike+javascript+abap+abnf+actionscript+ada+agda+al+antlr4+apacheconf+apex+apl+applescript+aql+arduino+arff+armasm+arturo+asciidoc+aspnet+asm6502+asmatmel+autohotkey+autoit+avisynth+avro-idl+awk+bash+basic+batch+bbcode+bbj+bicep+birb+bison+bnf+bqn+brainfuck+brightscript+bro+bsl+c+csharp+cpp+cfscript+chaiscript+cil+cilkc+cilkcpp+clojure+cmake+cobol+coffeescript+concurnas+csp+cooklang+coq+crystal+css-extras+csv+cue+cypher+d+dart+dataweave+dax+dhall+diff+django+dns-zone-file+docker+dot+ebnf+editorconfig+eiffel+ejs+elixir+elm+etlua+erb+erlang+excel-formula+fsharp+factor+false+firestore-security-rules+flow+fortran+ftl+gml+gap+gcode+gdscript+gedcom+gettext+gherkin+git+glsl+gn+linker-script+go+go-module+gradle+graphql+groovy+haml+handlebars+haskell+haxe+hcl+hlsl+hoon+http+hpkp+hsts+ichigojam+icon+icu-message-format+idris+ignore+inform7+ini+io+j+java+javadoc+javadoclike+javastacktrace+jexl+jolie+jq+jsdoc+js-extras+json+json5+jsonp+jsstacktrace+js-templates+julia+keepalived+keyman+kotlin+kumir+kusto+latex+latte+less+lilypond+liquid+lisp+livescript+llvm+log+lolcode+lua+magma+makefile+markdown+markup-templating+mata+matlab+maxscript+mel+mermaid+metafont+mizar+mongodb+monkey+moonscript+n1ql+n4js+nand2tetris-hdl+naniscript+nasm+neon+nevod+nginx+nim+nix+nsis+objectivec+ocaml+odin+opencl+openqasm+oz+parigp+parser+pascal+pascaligo+psl+pcaxis+peoplecode+perl+php+phpdoc+php-extras+plant-uml+plsql+powerquery+powershell+processing+prolog+promql+properties+protobuf+pug+puppet+pure+purebasic+purescript+python+qsharp+q+qml+qore+r+racket+cshtml+jsx+tsx+reason+regex+rego+renpy+rescript+rest+rip+roboconf+robotframework+ruby+rust+sas+sass+scss+scala+scheme+shell-session+smali+smalltalk+smarty+sml+solidity+solution-file+soy+sparql+splunk-spl+sqf+sql+squirrel+stan+stata+iecst+stylus+supercollider+swift+systemd+t4-templating+t4-cs+t4-vb+tap+tcl+tt2+textile+toml+tremor+turtle+twig+typescript+typoscript+unrealscript+uorazor+uri+v+vala+vbnet+velocity+verilog+vhdl+vim+visual-basic+warpscript+wasm+web-idl+wgsl+wiki+wolfram+wren+xeora+xml-doc+xojo+xquery+yaml+yang+zig&plugins=line-highlight+line-numbers+show-invisibles+autolinker+wpd+custom-class+file-highlight+show-language+jsonp-highlight+highlight-keywords+remove-initial-line-feed+inline-color+previewers+autoloader+keep-markup+command-line+unescaped-markup+normalize-whitespace+data-uri-highlight+toolbar+copy-to-clipboard+download-button+match-braces+diff-highlight+filter-highlight-all+treeview */
-/// <reference lib="WebWorker"/>
-
 var _self = (typeof window !== 'undefined')
-	? window   // if in browser
+	? window  
 	: (
 		(typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope)
-			? self // if in worker
-			: {}   // if in node js
+			? self
+			: {}  
 	);
 
-/**
- * Prism: Lightweight, robust, elegant syntax highlighting
- *
- * @license MIT <https://opensource.org/licenses/MIT>
- * @author Lea Verou <https://lea.verou.me>
- * @namespace
- * @public
- */
 var Prism = (function (_self) {
 
-	// Private helper vars
 	var lang = /(?:^|\s)lang(?:uage)?-([\w-]+)(?=\s|$)/i;
 	var uniqueId = 0;
 
-	// The grammar object for plaintext
 	var plainTextGrammar = {};
 
 
 	var _ = {
-		/**
-		 * By default, Prism will attempt to highlight all code elements (by calling {@link Prism.highlightAll}) on the
-		 * current page after the page finished loading. This might be a problem if e.g. you wanted to asynchronously load
-		 * additional languages or plugins yourself.
-		 *
-		 * By setting this value to `true`, Prism will not automatically highlight all code elements on the page.
-		 *
-		 * You obviously have to change this value before the automatic highlighting started. To do this, you can add an
-		 * empty Prism object into the global scope before loading the Prism script like this:
-		 *
-		 * ```js
-		 * window.Prism = window.Prism || {};
-		 * Prism.manual = true;
-		 * // add a new <script> to load Prism's script
-		 * ```
-		 *
-		 * @default false
-		 * @type {boolean}
-		 * @memberof Prism
-		 * @public
-		 */
 		manual: _self.Prism && _self.Prism.manual,
-		/**
-		 * By default, if Prism is in a web worker, it assumes that it is in a worker it created itself, so it uses
-		 * `addEventListener` to communicate with its parent instance. However, if you're using Prism manually in your
-		 * own worker, you don't want it to do this.
-		 *
-		 * By setting this value to `true`, Prism will not add its own listeners to the worker.
-		 *
-		 * You obviously have to change this value before Prism executes. To do this, you can add an
-		 * empty Prism object into the global scope before loading the Prism script like this:
-		 *
-		 * ```js
-		 * window.Prism = window.Prism || {};
-		 * Prism.disableWorkerMessageHandler = true;
-		 * // Load Prism's script
-		 * ```
-		 *
-		 * @default false
-		 * @type {boolean}
-		 * @memberof Prism
-		 * @public
-		 */
 		disableWorkerMessageHandler: _self.Prism && _self.Prism.disableWorkerMessageHandler,
-
-		/**
-		 * A namespace for utility methods.
-		 *
-		 * All function in this namespace that are not explicitly marked as _public_ are for __internal use only__ and may
-		 * change or disappear at any time.
-		 *
-		 * @namespace
-		 * @memberof Prism
-		 */
 		util: {
 			encode: function encode(tokens) {
 				if (tokens instanceof Token) {
@@ -94,32 +28,10 @@ var Prism = (function (_self) {
 				}
 			},
 
-			/**
-			 * Returns the name of the type of the given value.
-			 *
-			 * @param {any} o
-			 * @returns {string}
-			 * @example
-			 * type(null)      === 'Null'
-			 * type(undefined) === 'Undefined'
-			 * type(123)       === 'Number'
-			 * type('foo')     === 'String'
-			 * type(true)      === 'Boolean'
-			 * type([1, 2])    === 'Array'
-			 * type({})        === 'Object'
-			 * type(String)    === 'Function'
-			 * type(/abc+/)    === 'RegExp'
-			 */
 			type: function (o) {
 				return Object.prototype.toString.call(o).slice(8, -1);
 			},
-
-			/**
-			 * Returns a unique number for the given object. Later calls will still return the same number.
-			 *
-			 * @param {Object} obj
-			 * @returns {number}
-			 */
+			
 			objId: function (obj) {
 				if (!obj['__id']) {
 					Object.defineProperty(obj, '__id', { value: ++uniqueId });
@@ -127,16 +39,6 @@ var Prism = (function (_self) {
 				return obj['__id'];
 			},
 
-			/**
-			 * Creates a deep clone of the given object.
-			 *
-			 * The main intended use of this function is to clone language definitions.
-			 *
-			 * @param {T} o
-			 * @param {Record<number, any>} [visited]
-			 * @returns {T}
-			 * @template T
-			 */
 			clone: function deepClone(o, visited) {
 				visited = visited || {};
 
@@ -147,7 +49,7 @@ var Prism = (function (_self) {
 						if (visited[id]) {
 							return visited[id];
 						}
-						clone = /** @type {Record<string, any>} */ ({});
+						clone = ({});
 						visited[id] = clone;
 
 						for (var key in o) {
@@ -156,7 +58,7 @@ var Prism = (function (_self) {
 							}
 						}
 
-						return /** @type {any} */ (clone);
+						return (clone);
 
 					case 'Array':
 						id = _.util.objId(o);
@@ -166,25 +68,17 @@ var Prism = (function (_self) {
 						clone = [];
 						visited[id] = clone;
 
-						(/** @type {Array} */(/** @type {any} */(o))).forEach(function (v, i) {
+						(((o))).forEach(function (v, i) {
 							clone[i] = deepClone(v, visited);
 						});
 
-						return /** @type {any} */ (clone);
+						return (clone);
 
 					default:
 						return o;
 				}
 			},
 
-			/**
-			 * Returns the Prism language of the given element set by a `language-xxxx` or `lang-xxxx` class.
-			 *
-			 * If no language is set for the element or the element is `null` or `undefined`, `none` will be returned.
-			 *
-			 * @param {Element} element
-			 * @returns {string}
-			 */
 			getLanguage: function (element) {
 				while (element) {
 					var m = lang.exec(element.className);
@@ -196,51 +90,23 @@ var Prism = (function (_self) {
 				return 'none';
 			},
 
-			/**
-			 * Sets the Prism `language-xxxx` class of the given element.
-			 *
-			 * @param {Element} element
-			 * @param {string} language
-			 * @returns {void}
-			 */
 			setLanguage: function (element, language) {
-				// remove all `language-xxxx` classes
-				// (this might leave behind a leading space)
 				element.className = element.className.replace(RegExp(lang, 'gi'), '');
 
-				// add the new `language-xxxx` class
-				// (using `classList` will automatically clean up spaces for us)
 				element.classList.add('language-' + language);
 			},
 
-			/**
-			 * Returns the script element that is currently executing.
-			 *
-			 * This does __not__ work for line script element.
-			 *
-			 * @returns {HTMLScriptElement | null}
-			 */
 			currentScript: function () {
 				if (typeof document === 'undefined') {
 					return null;
 				}
-				if ('currentScript' in document && 1 < 2 /* hack to trip TS' flow analysis */) {
-					return /** @type {any} */ (document.currentScript);
+				if ('currentScript' in document && 1 < 2 ) {
+					return (document.currentScript);
 				}
-
-				// IE11 workaround
-				// we'll get the src of the current script by parsing IE11's error stack trace
-				// this will not work for inline scripts
 
 				try {
 					throw new Error();
 				} catch (err) {
-					// Get file src url from stack. Specifically works with the format of stack traces in IE.
-					// A stack will look like this:
-					//
-					// Error
-					//    at _.util.currentScript (http://localhost/components/prism-core.js:119:5)
-					//    at Global code (http://localhost/components/prism-core.js:606:1)
 
 					var src = (/at [^(\r\n]*\((.*):[^:]+:[^:]+\)$/i.exec(err.stack) || [])[1];
 					if (src) {
@@ -255,25 +121,6 @@ var Prism = (function (_self) {
 				}
 			},
 
-			/**
-			 * Returns whether a given class is active for `element`.
-			 *
-			 * The class can be activated if `element` or one of its ancestors has the given class and it can be deactivated
-			 * if `element` or one of its ancestors has the negated version of the given class. The _negated version_ of the
-			 * given class is just the given class with a `no-` prefix.
-			 *
-			 * Whether the class is active is determined by the closest ancestor of `element` (where `element` itself is
-			 * closest ancestor) that has the given class or the negated version of it. If neither `element` nor any of its
-			 * ancestors have the given class or the negated version of it, then the default activation will be returned.
-			 *
-			 * In the paradoxical situation where the closest ancestor contains __both__ the given class and the negated
-			 * version of it, the class is considered active.
-			 *
-			 * @param {Element} element
-			 * @param {string} className
-			 * @param {boolean} [defaultActivation=false]
-			 * @returns {boolean}
-			 */
 			isActive: function (element, className, defaultActivation) {
 				var no = 'no-' + className;
 
@@ -291,50 +138,12 @@ var Prism = (function (_self) {
 			}
 		},
 
-		/**
-		 * This namespace contains all currently loaded languages and the some helper functions to create and modify languages.
-		 *
-		 * @namespace
-		 * @memberof Prism
-		 * @public
-		 */
 		languages: {
-			/**
-			 * The grammar for plain, unformatted text.
-			 */
 			plain: plainTextGrammar,
 			plaintext: plainTextGrammar,
 			text: plainTextGrammar,
 			txt: plainTextGrammar,
 
-			/**
-			 * Creates a deep copy of the language with the given id and appends the given tokens.
-			 *
-			 * If a token in `redef` also appears in the copied language, then the existing token in the copied language
-			 * will be overwritten at its original position.
-			 *
-			 * ## Best practices
-			 *
-			 * Since the position of overwriting tokens (token in `redef` that overwrite tokens in the copied language)
-			 * doesn't matter, they can technically be in any order. However, this can be confusing to others that trying to
-			 * understand the language definition because, normally, the order of tokens matters in Prism grammars.
-			 *
-			 * Therefore, it is encouraged to order overwriting tokens according to the positions of the overwritten tokens.
-			 * Furthermore, all non-overwriting tokens should be placed after the overwriting ones.
-			 *
-			 * @param {string} id The id of the language to extend. This has to be a key in `Prism.languages`.
-			 * @param {Grammar} redef The new tokens to append.
-			 * @returns {Grammar} The new language created.
-			 * @public
-			 * @example
-			 * Prism.languages['css-with-colors'] = Prism.languages.extend('css', {
-			 *     // Prism.languages.css already has a 'comment' token, so this token will overwrite CSS' 'comment' token
-			 *     // at its original position
-			 *     'comment': { ... },
-			 *     // CSS doesn't have a 'color' token, so this token will be appended
-			 *     'color': /\b(?:red|green|blue)\b/
-			 * });
-			 */
 			extend: function (id, redef) {
 				var lang = _.util.clone(_.languages[id]);
 
@@ -345,85 +154,9 @@ var Prism = (function (_self) {
 				return lang;
 			},
 
-			/**
-			 * Inserts tokens _before_ another token in a language definition or any other grammar.
-			 *
-			 * ## Usage
-			 *
-			 * This helper method makes it easy to modify existing languages. For example, the CSS language definition
-			 * not only defines CSS highlighting for CSS documents, but also needs to define highlighting for CSS embedded
-			 * in HTML through `<style>` elements. To do this, it needs to modify `Prism.languages.markup` and add the
-			 * appropriate tokens. However, `Prism.languages.markup` is a regular JavaScript object literal, so if you do
-			 * this:
-			 *
-			 * ```js
-			 * Prism.languages.markup.style = {
-			 *     // token
-			 * };
-			 * ```
-			 *
-			 * then the `style` token will be added (and processed) at the end. `insertBefore` allows you to insert tokens
-			 * before existing tokens. For the CSS example above, you would use it like this:
-			 *
-			 * ```js
-			 * Prism.languages.insertBefore('markup', 'cdata', {
-			 *     'style': {
-			 *         // token
-			 *     }
-			 * });
-			 * ```
-			 *
-			 * ## Special cases
-			 *
-			 * If the grammars of `inside` and `insert` have tokens with the same name, the tokens in `inside`'s grammar
-			 * will be ignored.
-			 *
-			 * This behavior can be used to insert tokens after `before`:
-			 *
-			 * ```js
-			 * Prism.languages.insertBefore('markup', 'comment', {
-			 *     'comment': Prism.languages.markup.comment,
-			 *     // tokens after 'comment'
-			 * });
-			 * ```
-			 *
-			 * ## Limitations
-			 *
-			 * The main problem `insertBefore` has to solve is iteration order. Since ES2015, the iteration order for object
-			 * properties is guaranteed to be the insertion order (except for integer keys) but some browsers behave
-			 * differently when keys are deleted and re-inserted. So `insertBefore` can't be implemented by temporarily
-			 * deleting properties which is necessary to insert at arbitrary positions.
-			 *
-			 * To solve this problem, `insertBefore` doesn't actually insert the given tokens into the target object.
-			 * Instead, it will create a new object and replace all references to the target object with the new one. This
-			 * can be done without temporarily deleting properties, so the iteration order is well-defined.
-			 *
-			 * However, only references that can be reached from `Prism.languages` or `insert` will be replaced. I.e. if
-			 * you hold the target object in a variable, then the value of the variable will not change.
-			 *
-			 * ```js
-			 * var oldMarkup = Prism.languages.markup;
-			 * var newMarkup = Prism.languages.insertBefore('markup', 'comment', { ... });
-			 *
-			 * assert(oldMarkup !== Prism.languages.markup);
-			 * assert(newMarkup === Prism.languages.markup);
-			 * ```
-			 *
-			 * @param {string} inside The property of `root` (e.g. a language id in `Prism.languages`) that contains the
-			 * object to be modified.
-			 * @param {string} before The key to insert before.
-			 * @param {Grammar} insert An object containing the key-value pairs to be inserted.
-			 * @param {Object<string, any>} [root] The object containing `inside`, i.e. the object that contains the
-			 * object to be modified.
-			 *
-			 * Defaults to `Prism.languages`.
-			 * @returns {Grammar} The new grammar object.
-			 * @public
-			 */
 			insertBefore: function (inside, before, insert, root) {
-				root = root || /** @type {any} */ (_.languages);
+				root = root || (_.languages);
 				var grammar = root[inside];
-				/** @type {Grammar} */
 				var ret = {};
 
 				for (var token in grammar) {
@@ -437,7 +170,6 @@ var Prism = (function (_self) {
 							}
 						}
 
-						// Do not insert token which also occur in insert. See #1525
 						if (!insert.hasOwnProperty(token)) {
 							ret[token] = grammar[token];
 						}
@@ -447,7 +179,6 @@ var Prism = (function (_self) {
 				var old = root[inside];
 				root[inside] = ret;
 
-				// Update references in other language definitions
 				_.languages.DFS(_.languages, function (key, value) {
 					if (value === old && key != inside) {
 						this[key] = ret;
@@ -457,7 +188,6 @@ var Prism = (function (_self) {
 				return ret;
 			},
 
-			// Traverse a language definition with Depth First Search
 			DFS: function DFS(o, callback, type, visited) {
 				visited = visited || {};
 
@@ -484,37 +214,10 @@ var Prism = (function (_self) {
 
 		plugins: {},
 
-		/**
-		 * This is the most high-level function in Prism’s API.
-		 * It fetches all the elements that have a `.language-xxxx` class and then calls {@link Prism.highlightElement} on
-		 * each one of them.
-		 *
-		 * This is equivalent to `Prism.highlightAllUnder(document, async, callback)`.
-		 *
-		 * @param {boolean} [async=false] Same as in {@link Prism.highlightAllUnder}.
-		 * @param {HighlightCallback} [callback] Same as in {@link Prism.highlightAllUnder}.
-		 * @memberof Prism
-		 * @public
-		 */
 		highlightAll: function (async, callback) {
 			_.highlightAllUnder(document, async, callback);
 		},
 
-		/**
-		 * Fetches all the descendants of `container` that have a `.language-xxxx` class and then calls
-		 * {@link Prism.highlightElement} on each one of them.
-		 *
-		 * The following hooks will be run:
-		 * 1. `before-highlightall`
-		 * 2. `before-all-elements-highlight`
-		 * 3. All hooks of {@link Prism.highlightElement} for each element.
-		 *
-		 * @param {ParentNode} container The root element, whose descendants that have a `.language-xxxx` class will be highlighted.
-		 * @param {boolean} [async=false] Whether each element is to be highlighted asynchronously using Web Workers.
-		 * @param {HighlightCallback} [callback] An optional callback to be invoked on each element after its highlighting is done.
-		 * @memberof Prism
-		 * @public
-		 */
 		highlightAllUnder: function (container, async, callback) {
 			var env = {
 				callback: callback,
@@ -533,43 +236,12 @@ var Prism = (function (_self) {
 			}
 		},
 
-		/**
-		 * Highlights the code inside a single element.
-		 *
-		 * The following hooks will be run:
-		 * 1. `before-sanity-check`
-		 * 2. `before-highlight`
-		 * 3. All hooks of {@link Prism.highlight}. These hooks will be run by an asynchronous worker if `async` is `true`.
-		 * 4. `before-insert`
-		 * 5. `after-highlight`
-		 * 6. `complete`
-		 *
-		 * Some the above hooks will be skipped if the element doesn't contain any text or there is no grammar loaded for
-		 * the element's language.
-		 *
-		 * @param {Element} element The element containing the code.
-		 * It must have a class of `language-xxxx` to be processed, where `xxxx` is a valid language identifier.
-		 * @param {boolean} [async=false] Whether the element is to be highlighted asynchronously using Web Workers
-		 * to improve performance and avoid blocking the UI when highlighting very large chunks of code. This option is
-		 * [disabled by default](https://prismjs.com/faq.html#why-is-asynchronous-highlighting-disabled-by-default).
-		 *
-		 * Note: All language definitions required to highlight the code must be included in the main `prism.js` file for
-		 * asynchronous highlighting to work. You can build your own bundle on the
-		 * [Download page](https://prismjs.com/download.html).
-		 * @param {HighlightCallback} [callback] An optional callback to be invoked after the highlighting is done.
-		 * Mostly useful when `async` is `true`, since in that case, the highlighting is done asynchronously.
-		 * @memberof Prism
-		 * @public
-		 */
 		highlightElement: function (element, async, callback) {
-			// Find language
 			var language = _.util.getLanguage(element);
 			var grammar = _.languages[language];
 
-			// Set language on the element, if not present
 			_.util.setLanguage(element, language);
 
-			// Set language on the parent, for styling
 			var parent = element.parentElement;
 			if (parent && parent.nodeName.toLowerCase() === 'pre') {
 				_.util.setLanguage(parent, language);
@@ -598,7 +270,6 @@ var Prism = (function (_self) {
 
 			_.hooks.run('before-sanity-check', env);
 
-			// plugins may change/add the parent/element
 			parent = env.element.parentElement;
 			if (parent && parent.nodeName.toLowerCase() === 'pre' && !parent.hasAttribute('tabindex')) {
 				parent.setAttribute('tabindex', '0');
@@ -634,26 +305,6 @@ var Prism = (function (_self) {
 			}
 		},
 
-		/**
-		 * Low-level function, only use if you know what you’re doing. It accepts a string of text as input
-		 * and the language definitions to use, and returns a string with the HTML produced.
-		 *
-		 * The following hooks will be run:
-		 * 1. `before-tokenize`
-		 * 2. `after-tokenize`
-		 * 3. `wrap`: On each {@link Token}.
-		 *
-		 * @param {string} text A string with the code to be highlighted.
-		 * @param {Grammar} grammar An object containing the tokens to use.
-		 *
-		 * Usually a language definition like `Prism.languages.markup`.
-		 * @param {string} language The name of the language definition passed to `grammar`.
-		 * @returns {string} The highlighted HTML.
-		 * @memberof Prism
-		 * @public
-		 * @example
-		 * Prism.highlight('var foo = true;', Prism.languages.javascript, 'javascript');
-		 */
 		highlight: function (text, grammar, language) {
 			var env = {
 				code: text,
@@ -669,30 +320,6 @@ var Prism = (function (_self) {
 			return Token.stringify(_.util.encode(env.tokens), env.language);
 		},
 
-		/**
-		 * This is the heart of Prism, and the most low-level function you can use. It accepts a string of text as input
-		 * and the language definitions to use, and returns an array with the tokenized code.
-		 *
-		 * When the language definition includes nested tokens, the function is called recursively on each of these tokens.
-		 *
-		 * This method could be useful in other contexts as well, as a very crude parser.
-		 *
-		 * @param {string} text A string with the code to be highlighted.
-		 * @param {Grammar} grammar An object containing the tokens to use.
-		 *
-		 * Usually a language definition like `Prism.languages.markup`.
-		 * @returns {TokenStream} An array of strings and tokens, a token stream.
-		 * @memberof Prism
-		 * @public
-		 * @example
-		 * let code = `var foo = 0;`;
-		 * let tokens = Prism.tokenize(code, Prism.languages.javascript);
-		 * tokens.forEach(token => {
-		 *     if (token instanceof Prism.Token && token.type === 'number') {
-		 *         console.log(`Found numeric literal: ${token.content}`);
-		 *     }
-		 * });
-		 */
 		tokenize: function (text, grammar) {
 			var rest = grammar.rest;
 			if (rest) {
@@ -711,26 +338,9 @@ var Prism = (function (_self) {
 			return toArray(tokenList);
 		},
 
-		/**
-		 * @namespace
-		 * @memberof Prism
-		 * @public
-		 */
 		hooks: {
 			all: {},
 
-			/**
-			 * Adds the given callback to the list of callbacks for the given hook.
-			 *
-			 * The callback will be invoked when the hook it is registered for is run.
-			 * Hooks are usually directly run by a highlight function but you can also run hooks yourself.
-			 *
-			 * One callback function can be registered to multiple hooks and the same hook multiple times.
-			 *
-			 * @param {string} name The name of the hook.
-			 * @param {HookCallback} callback The callback function which is given environment variables.
-			 * @public
-			 */
 			add: function (name, callback) {
 				var hooks = _.hooks.all;
 
@@ -739,15 +349,6 @@ var Prism = (function (_self) {
 				hooks[name].push(callback);
 			},
 
-			/**
-			 * Runs a hook invoking all registered callbacks with the given environment variables.
-			 *
-			 * Callbacks will be invoked synchronously and in the order in which they were registered.
-			 *
-			 * @param {string} name The name of the hook.
-			 * @param {Object<string, any>} env The environment variables of the hook passed to all callbacks registered.
-			 * @public
-			 */
 			run: function (name, env) {
 				var callbacks = _.hooks.all[name];
 
@@ -765,83 +366,17 @@ var Prism = (function (_self) {
 	};
 	_self.Prism = _;
 
-
-	// Typescript note:
-	// The following can be used to import the Token type in JSDoc:
-	//
-	//   @typedef {InstanceType<import("./prism-core")["Token"]>} Token
-
-	/**
-	 * Creates a new token.
-	 *
-	 * @param {string} type See {@link Token#type type}
-	 * @param {string | TokenStream} content See {@link Token#content content}
-	 * @param {string|string[]} [alias] The alias(es) of the token.
-	 * @param {string} [matchedStr=""] A copy of the full string this token was created from.
-	 * @class
-	 * @global
-	 * @public
-	 */
 	function Token(type, content, alias, matchedStr) {
-		/**
-		 * The type of the token.
-		 *
-		 * This is usually the key of a pattern in a {@link Grammar}.
-		 *
-		 * @type {string}
-		 * @see GrammarToken
-		 * @public
-		 */
+
 		this.type = type;
-		/**
-		 * The strings or tokens contained by this token.
-		 *
-		 * This will be a token stream if the pattern matched also defined an `inside` grammar.
-		 *
-		 * @type {string | TokenStream}
-		 * @public
-		 */
+
 		this.content = content;
-		/**
-		 * The alias(es) of the token.
-		 *
-		 * @type {string|string[]}
-		 * @see GrammarToken
-		 * @public
-		 */
+
 		this.alias = alias;
-		// Copy of the full string this token was created from
+
 		this.length = (matchedStr || '').length | 0;
 	}
 
-	/**
-	 * A token stream is an array of strings and {@link Token Token} objects.
-	 *
-	 * Token streams have to fulfill a few properties that are assumed by most functions (mostly internal ones) that process
-	 * them.
-	 *
-	 * 1. No adjacent strings.
-	 * 2. No empty strings.
-	 *
-	 *    The only exception here is the token stream that only contains the empty string and nothing else.
-	 *
-	 * @typedef {Array<string | Token>} TokenStream
-	 * @global
-	 * @public
-	 */
-
-	/**
-	 * Converts the given token or token stream to an HTML representation.
-	 *
-	 * The following hooks will be run:
-	 * 1. `wrap`: On each {@link Token}.
-	 *
-	 * @param {string | Token | TokenStream} o The token or token stream to be converted.
-	 * @param {string} language The name of current language.
-	 * @returns {string} The HTML representation of the token or token stream.
-	 * @memberof Token
-	 * @static
-	 */
 	Token.stringify = function stringify(o, language) {
 		if (typeof o == 'string') {
 			return o;
@@ -882,18 +417,10 @@ var Prism = (function (_self) {
 		return '<' + env.tag + ' class="' + env.classes.join(' ') + '"' + attributes + '>' + env.content + '</' + env.tag + '>';
 	};
 
-	/**
-	 * @param {RegExp} pattern
-	 * @param {number} pos
-	 * @param {string} text
-	 * @param {boolean} lookbehind
-	 * @returns {RegExpExecArray | null}
-	 */
 	function matchPattern(pattern, pos, text, lookbehind) {
 		pattern.lastIndex = pos;
 		var match = pattern.exec(text);
 		if (match && lookbehind && match[1]) {
-			// change the match to remove the text matched by the Prism lookbehind group
 			var lookbehindLength = match[1].length;
 			match.index += lookbehindLength;
 			match[0] = match[0].slice(lookbehindLength);
@@ -901,20 +428,6 @@ var Prism = (function (_self) {
 		return match;
 	}
 
-	/**
-	 * @param {string} text
-	 * @param {LinkedList<string | Token>} tokenList
-	 * @param {any} grammar
-	 * @param {LinkedListNode<string | Token>} startNode
-	 * @param {number} startPos
-	 * @param {RematchOptions} [rematch]
-	 * @returns {void}
-	 * @private
-	 *
-	 * @typedef RematchOptions
-	 * @property {string} cause
-	 * @property {number} reach
-	 */
 	function matchGrammar(text, tokenList, grammar, startNode, startPos, rematch) {
 		for (var token in grammar) {
 			if (!grammar.hasOwnProperty(token) || !grammar[token]) {
@@ -936,15 +449,13 @@ var Prism = (function (_self) {
 				var alias = patternObj.alias;
 
 				if (greedy && !patternObj.pattern.global) {
-					// Without the global flag, lastIndex won't work
 					var flags = patternObj.pattern.toString().match(/[imsuy]*$/)[0];
 					patternObj.pattern = RegExp(patternObj.pattern.source, flags + 'g');
 				}
 
-				/** @type {RegExp} */
 				var pattern = patternObj.pattern || patternObj;
 
-				for ( // iterate the token list and keep track of the current token/string position
+				for (
 					var currentNode = startNode.next, pos = startPos;
 					currentNode !== tokenList.tail;
 					pos += currentNode.value.length, currentNode = currentNode.next
@@ -957,7 +468,6 @@ var Prism = (function (_self) {
 					var str = currentNode.value;
 
 					if (tokenList.length > text.length) {
-						// Something went terribly wrong, ABORT, ABORT!
 						return;
 					}
 
@@ -965,7 +475,7 @@ var Prism = (function (_self) {
 						continue;
 					}
 
-					var removeCount = 1; // this is the to parameter of removeBetween
+					var removeCount = 1; 
 					var match;
 
 					if (greedy) {
@@ -978,22 +488,18 @@ var Prism = (function (_self) {
 						var to = match.index + match[0].length;
 						var p = pos;
 
-						// find the node that contains the match
 						p += currentNode.value.length;
 						while (from >= p) {
 							currentNode = currentNode.next;
 							p += currentNode.value.length;
 						}
-						// adjust pos (and p)
 						p -= currentNode.value.length;
 						pos = p;
 
-						// the current node is a Token, then the match starts inside another Token, which is invalid
 						if (currentNode.value instanceof Token) {
 							continue;
 						}
 
-						// find the last node which is affected by this match
 						for (
 							var k = currentNode;
 							k !== tokenList.tail && (p < to || typeof k.value === 'string');
@@ -1004,7 +510,6 @@ var Prism = (function (_self) {
 						}
 						removeCount--;
 
-						// replace with the new match
 						str = text.slice(pos, p);
 						match.index -= pos;
 					} else {
@@ -1014,7 +519,6 @@ var Prism = (function (_self) {
 						}
 					}
 
-					// eslint-disable-next-line no-redeclare
 					var from = match.index;
 					var matchStr = match[0];
 					var before = str.slice(0, from);
@@ -1042,17 +546,12 @@ var Prism = (function (_self) {
 					}
 
 					if (removeCount > 1) {
-						// at least one Token object was removed, so we have to do some rematching
-						// this can only happen if the current pattern is greedy
-
-						/** @type {RematchOptions} */
 						var nestedRematch = {
 							cause: token + ',' + j,
 							reach: reach
 						};
 						matchGrammar(text, tokenList, grammar, currentNode.prev, pos, nestedRematch);
 
-						// the reach might have been extended because of the rematching
 						if (rematch && nestedRematch.reach > rematch.reach) {
 							rematch.reach = nestedRematch.reach;
 						}
@@ -1062,44 +561,17 @@ var Prism = (function (_self) {
 		}
 	}
 
-	/**
-	 * @typedef LinkedListNode
-	 * @property {T} value
-	 * @property {LinkedListNode<T> | null} prev The previous node.
-	 * @property {LinkedListNode<T> | null} next The next node.
-	 * @template T
-	 * @private
-	 */
-
-	/**
-	 * @template T
-	 * @private
-	 */
 	function LinkedList() {
-		/** @type {LinkedListNode<T>} */
 		var head = { value: null, prev: null, next: null };
-		/** @type {LinkedListNode<T>} */
 		var tail = { value: null, prev: head, next: null };
 		head.next = tail;
 
-		/** @type {LinkedListNode<T>} */
 		this.head = head;
-		/** @type {LinkedListNode<T>} */
 		this.tail = tail;
 		this.length = 0;
 	}
 
-	/**
-	 * Adds a new node with the given value to the list.
-	 *
-	 * @param {LinkedList<T>} list
-	 * @param {LinkedListNode<T>} node
-	 * @param {T} value
-	 * @returns {LinkedListNode<T>} The added node.
-	 * @template T
-	 */
 	function addAfter(list, node, value) {
-		// assumes that node != list.tail && values.length >= 0
 		var next = node.next;
 
 		var newNode = { value: value, prev: node, next: next };
@@ -1109,14 +581,7 @@ var Prism = (function (_self) {
 
 		return newNode;
 	}
-	/**
-	 * Removes `count` nodes after the given node. The given node will not be removed.
-	 *
-	 * @param {LinkedList<T>} list
-	 * @param {LinkedListNode<T>} node
-	 * @param {number} count
-	 * @template T
-	 */
+	
 	function removeRange(list, node, count) {
 		var next = node.next;
 		for (var i = 0; i < count && next !== list.tail; i++) {
@@ -1126,11 +591,7 @@ var Prism = (function (_self) {
 		next.prev = node;
 		list.length -= i;
 	}
-	/**
-	 * @param {LinkedList<T>} list
-	 * @returns {T[]}
-	 * @template T
-	 */
+
 	function toArray(list) {
 		var array = [];
 		var node = list.head.next;
@@ -1144,12 +605,10 @@ var Prism = (function (_self) {
 
 	if (!_self.document) {
 		if (!_self.addEventListener) {
-			// in Node.js
 			return _;
 		}
 
 		if (!_.disableWorkerMessageHandler) {
-			// In worker
 			_self.addEventListener('message', function (evt) {
 				var message = JSON.parse(evt.data);
 				var lang = message.language;
@@ -1166,7 +625,6 @@ var Prism = (function (_self) {
 		return _;
 	}
 
-	// Get current script and highlight
 	var script = _.util.currentScript();
 
 	if (script) {
@@ -1184,12 +642,6 @@ var Prism = (function (_self) {
 	}
 
 	if (!_.manual) {
-		// If the document state is "loading", then we'll use DOMContentLoaded.
-		// If the document state is "interactive" and the prism.js script is deferred, then we'll also use the
-		// DOMContentLoaded event because there might be some plugins or languages which have also been deferred and they
-		// might take longer one animation frame to execute which can create a race condition where only some plugins have
-		// been loaded when Prism.highlightAll() is executed, depending on how fast resources are loaded.
-		// See https://github.com/PrismJS/prism/issues/2102
 		var readyState = document.readyState;
 		if (readyState === 'loading' || readyState === 'interactive' && script && script.defer) {
 			document.addEventListener('DOMContentLoaded', highlightAutomaticallyCallback);
@@ -1210,59 +662,10 @@ if (typeof module !== 'undefined' && module.exports) {
 	module.exports = Prism;
 }
 
-// hack for components to work correctly in node.js
 if (typeof global !== 'undefined') {
 	global.Prism = Prism;
 }
 
-// some additional documentation/types
-
-/**
- * The expansion of a simple `RegExp` literal to support additional properties.
- *
- * @typedef GrammarToken
- * @property {RegExp} pattern The regular expression of the token.
- * @property {boolean} [lookbehind=false] If `true`, then the first capturing group of `pattern` will (effectively)
- * behave as a lookbehind group meaning that the captured text will not be part of the matched text of the new token.
- * @property {boolean} [greedy=false] Whether the token is greedy.
- * @property {string|string[]} [alias] An optional alias or list of aliases.
- * @property {Grammar} [inside] The nested grammar of this token.
- *
- * The `inside` grammar will be used to tokenize the text value of each token of this kind.
- *
- * This can be used to make nested and even recursive language definitions.
- *
- * Note: This can cause infinite recursion. Be careful when you embed different languages or even the same language into
- * each another.
- * @global
- * @public
- */
-
-/**
- * @typedef Grammar
- * @type {Object<string, RegExp | GrammarToken | Array<RegExp | GrammarToken>>}
- * @property {Grammar} [rest] An optional grammar object that will be appended to this grammar.
- * @global
- * @public
- */
-
-/**
- * A function which will invoked after an element was successfully highlighted.
- *
- * @callback HighlightCallback
- * @param {Element} element The element successfully highlighted.
- * @returns {void}
- * @global
- * @public
- */
-
-/**
- * @callback HookCallback
- * @param {Object<string, any>} env The environment variables of the hook.
- * @returns {void}
- * @global
- * @public
- */
 ;
 Prism.languages.markup = {
 	'comment': {
@@ -1274,7 +677,6 @@ Prism.languages.markup = {
 		greedy: true
 	},
 	'doctype': {
-		// https://www.w3.org/TR/xml/#NT-doctypedecl
 		pattern: /<!DOCTYPE(?:[^>"'[\]]|"[^"]*"|'[^']*')+(?:\[(?:[^<"'\]]|"[^"]*"|'[^']*'|<(?!!--)|<!--(?:[^-]|-(?!->))*-->)*\]\s*)?>/i,
 		greedy: true,
 		inside: {
@@ -1282,7 +684,7 @@ Prism.languages.markup = {
 				pattern: /(^[^\[]*\[)[\s\S]+(?=\]>$)/,
 				lookbehind: true,
 				greedy: true,
-				inside: null // see below
+				inside: null
 			},
 			'string': {
 				pattern: /"[^"]*"|'[^']*'/,
@@ -1347,7 +749,6 @@ Prism.languages.markup['tag'].inside['attr-value'].inside['entity'] =
 	Prism.languages.markup['entity'];
 Prism.languages.markup['doctype'].inside['internal-subset'].inside = Prism.languages.markup;
 
-// Plugin to make entity title show the real entity, idea by Roman Komarov
 Prism.hooks.add('wrap', function (env) {
 
 	if (env.type === 'entity') {
@@ -1356,17 +757,7 @@ Prism.hooks.add('wrap', function (env) {
 });
 
 Object.defineProperty(Prism.languages.markup.tag, 'addInlined', {
-	/**
-	 * Adds an inlined language to markup.
-	 *
-	 * An example of an inlined language is CSS with `<style>` tags.
-	 *
-	 * @param {string} tagName The name of the tag that contains the inlined language. This name will be treated as
-	 * case insensitive.
-	 * @param {string} lang The language key.
-	 * @example
-	 * addInlined('style', 'css');
-	 */
+
 	value: function addInlined(tagName, lang) {
 		var includedCdataInside = {};
 		includedCdataInside['language-' + lang] = {
@@ -1399,17 +790,7 @@ Object.defineProperty(Prism.languages.markup.tag, 'addInlined', {
 	}
 });
 Object.defineProperty(Prism.languages.markup.tag, 'addAttribute', {
-	/**
-	 * Adds an pattern to highlight languages embedded in HTML attributes.
-	 *
-	 * An example of an inlined language is CSS with `style` attributes.
-	 *
-	 * @param {string} attrName The name of the tag that contains the inlined language. This name will be treated as
-	 * case insensitive.
-	 * @param {string} lang The language key.
-	 * @example
-	 * addAttribute('style', 'css');
-	 */
+
 	value: function (attrName, lang) {
 		Prism.languages.markup.tag.inside['special-attr'].push({
 			pattern: RegExp(
@@ -1470,11 +851,9 @@ Prism.languages.rss = Prism.languages.xml;
 					pattern: /(^|[^\w-])(?:and|not|only|or)(?![\w-])/,
 					lookbehind: true
 				}
-				// See rest below
 			}
 		},
 		'url': {
-			// https://drafts.csswg.org/css-values-3/#urls
 			pattern: RegExp('\\burl\\((?:' + string.source + '|' + /(?:[^\\\r\n()"']|\\[\s\S])*/.source + ')\\)', 'i'),
 			greedy: true,
 			inside: {
@@ -1566,29 +945,22 @@ Prism.languages.javascript = Prism.languages.extend('clike', {
 			lookbehind: true
 		},
 	],
-	// Allow for all non-ASCII characters (See http://stackoverflow.com/a/2008444)
 	'function': /#?(?!\s)[_$a-zA-Z\xA0-\uFFFF](?:(?!\s)[$\w\xA0-\uFFFF])*(?=\s*(?:\.\s*(?:apply|bind|call)\s*)?\()/,
 	'number': {
 		pattern: RegExp(
 			/(^|[^\w$])/.source +
 			'(?:' +
 			(
-				// constant
 				/NaN|Infinity/.source +
 				'|' +
-				// binary integer
 				/0[bB][01]+(?:_[01]+)*n?/.source +
 				'|' +
-				// octal integer
 				/0[oO][0-7]+(?:_[0-7]+)*n?/.source +
 				'|' +
-				// hexadecimal integer
 				/0[xX][\dA-Fa-f]+(?:_[\dA-Fa-f]+)*n?/.source +
 				'|' +
-				// decimal bigint
 				/\d+(?:_\d+)*n/.source +
 				'|' +
-				// decimal number (integer or float) but no bigint
 				/(?:\d+(?:_\d+)*(?:\.(?:\d+(?:_\d+)*)?)?|\.\d+(?:_\d+)*)(?:[Ee][+-]?\d+(?:_\d+)*)?/.source
 			) +
 			')' +
@@ -1604,21 +976,13 @@ Prism.languages.javascript['class-name'][0].pattern = /(\b(?:class|extends|imple
 Prism.languages.insertBefore('javascript', 'keyword', {
 	'regex': {
 		pattern: RegExp(
-			// lookbehind
-			// eslint-disable-next-line regexp/no-dupe-characters-character-class
 			/((?:^|[^$\w\xA0-\uFFFF."'\])\s]|\b(?:return|yield))\s*)/.source +
-			// Regex pattern:
-			// There are 2 regex patterns here. The RegExp set notation proposal added support for nested character
-			// classes if the `v` flag is present. Unfortunately, nested CCs are both context-free and incompatible
-			// with the only syntax, so we have to define 2 different regex patterns.
 			/\//.source +
 			'(?:' +
 			/(?:\[(?:[^\]\\\r\n]|\\.)*\]|\\.|[^/\\\[\r\n])+\/[dgimyus]{0,7}/.source +
 			'|' +
-			// `v` flag syntax. This supports 3 levels of nested character classes.
 			/(?:\[(?:[^[\]\\\r\n]|\\.|\[(?:[^[\]\\\r\n]|\\.|\[(?:[^[\]\\\r\n]|\\.)*\])*\])*\]|\\.|[^/\\\[\r\n])+\/[dgimyus]{0,7}v[dgimyus]{0,7}/.source +
 			')' +
-			// lookahead
 			/(?=(?:\s|\/\*(?:[^*]|\*(?!\/))*\*\/)*(?:$|[\r\n,.;:})\]]|\/\/))/.source
 		),
 		lookbehind: true,
@@ -1634,7 +998,6 @@ Prism.languages.insertBefore('javascript', 'keyword', {
 			'regex-flags': /^[a-z]+$/,
 		}
 	},
-	// This must be declared before keyword because we use "function" inside the look-forward
 	'function-variable': {
 		pattern: /#?(?!\s)[_$a-zA-Z\xA0-\uFFFF](?:(?!\s)[$\w\xA0-\uFFFF])*(?=\s*[=:]\s*(?:async\s*)?(?:\bfunction\b|(?:\((?:[^()]|\([^()]*\))*\)|(?!\s)[_$a-zA-Z\xA0-\uFFFF](?:(?!\s)[$\w\xA0-\uFFFF])*)\s*=>))/,
 		alias: 'function'
@@ -1711,8 +1074,6 @@ Prism.languages.insertBefore('javascript', 'operator', {
 if (Prism.languages.markup) {
 	Prism.languages.markup.tag.addInlined('script', 'javascript');
 
-	// add attribute support for all DOM events.
-	// https://developer.mozilla.org/en-US/docs/Web/Events#Standard_events
 	Prism.languages.markup.tag.addAttribute(
 		/on(?:abort|blur|change|click|composition(?:end|start|update)|dblclick|error|focus(?:in|out)?|key(?:down|up)|load|mouse(?:down|enter|leave|move|out|over|up)|reset|resize|scroll|select|slotchange|submit|unload|wheel)/.source,
 		'javascript'
@@ -1729,10 +1090,6 @@ Prism.languages.abap = {
 		lookbehind: true,
 		alias: 'string'
 	},
-	/* End Of Line comments should not interfere with strings when the
-	quote character occurs within them. We assume a string being highlighted
-	inside an EOL comment is more acceptable than the opposite.
-	*/
 	'eol-comment': {
 		pattern: /(^|\s)".*/m,
 		lookbehind: true,
@@ -1742,11 +1099,7 @@ Prism.languages.abap = {
 		pattern: /(\s|\.|^)(?:\*-INPUT|\?TO|ABAP-SOURCE|ABBREVIATED|ABS|ABSTRACT|ACCEPT|ACCEPTING|ACCESSPOLICY|ACCORDING|ACOS|ACTIVATION|ACTUAL|ADD|ADD-CORRESPONDING|ADJACENT|AFTER|ALIAS|ALIASES|ALIGN|ALL|ALLOCATE|ALPHA|ANALYSIS|ANALYZER|AND|ANY|APPEND|APPENDAGE|APPENDING|APPLICATION|ARCHIVE|AREA|ARITHMETIC|AS|ASCENDING|ASIN|ASPECT|ASSERT|ASSIGN|ASSIGNED|ASSIGNING|ASSOCIATION|ASYNCHRONOUS|AT|ATAN|ATTRIBUTES|AUTHORITY|AUTHORITY-CHECK|AVG|BACK|BACKGROUND|BACKUP|BACKWARD|BADI|BASE|BEFORE|BEGIN|BETWEEN|BIG|BINARY|BINDING|BIT|BIT-AND|BIT-NOT|BIT-OR|BIT-XOR|BLACK|BLANK|BLANKS|BLOB|BLOCK|BLOCKS|BLUE|BOUND|BOUNDARIES|BOUNDS|BOXED|BREAK-POINT|BT|BUFFER|BY|BYPASSING|BYTE|BYTE-CA|BYTE-CN|BYTE-CO|BYTE-CS|BYTE-NA|BYTE-NS|BYTE-ORDER|C|CA|CALL|CALLING|CASE|CAST|CASTING|CATCH|CEIL|CENTER|CENTERED|CHAIN|CHAIN-INPUT|CHAIN-REQUEST|CHANGE|CHANGING|CHANNELS|CHAR-TO-HEX|CHARACTER|CHARLEN|CHECK|CHECKBOX|CIRCULAR|CI_|CLASS|CLASS-CODING|CLASS-DATA|CLASS-EVENTS|CLASS-METHODS|CLASS-POOL|CLEANUP|CLEAR|CLIENT|CLOB|CLOCK|CLOSE|CN|CNT|CO|COALESCE|CODE|CODING|COLLECT|COLOR|COLUMN|COLUMNS|COL_BACKGROUND|COL_GROUP|COL_HEADING|COL_KEY|COL_NEGATIVE|COL_NORMAL|COL_POSITIVE|COL_TOTAL|COMMENT|COMMENTS|COMMIT|COMMON|COMMUNICATION|COMPARING|COMPONENT|COMPONENTS|COMPRESSION|COMPUTE|CONCAT|CONCATENATE|COND|CONDENSE|CONDITION|CONNECT|CONNECTION|CONSTANTS|CONTEXT|CONTEXTS|CONTINUE|CONTROL|CONTROLS|CONV|CONVERSION|CONVERT|COPIES|COPY|CORRESPONDING|COS|COSH|COUNT|COUNTRY|COVER|CP|CPI|CREATE|CREATING|CRITICAL|CS|CURRENCY|CURRENCY_CONVERSION|CURRENT|CURSOR|CURSOR-SELECTION|CUSTOMER|CUSTOMER-FUNCTION|DANGEROUS|DATA|DATABASE|DATAINFO|DATASET|DATE|DAYLIGHT|DBMAXLEN|DD\/MM\/YY|DD\/MM\/YYYY|DDMMYY|DEALLOCATE|DECIMALS|DECIMAL_SHIFT|DECLARATIONS|DEEP|DEFAULT|DEFERRED|DEFINE|DEFINING|DEFINITION|DELETE|DELETING|DEMAND|DEPARTMENT|DESCENDING|DESCRIBE|DESTINATION|DETAIL|DIALOG|DIRECTORY|DISCONNECT|DISPLAY|DISPLAY-MODE|DISTANCE|DISTINCT|DIV|DIVIDE|DIVIDE-CORRESPONDING|DIVISION|DO|DUMMY|DUPLICATE|DUPLICATES|DURATION|DURING|DYNAMIC|DYNPRO|E|EACH|EDIT|EDITOR-CALL|ELSE|ELSEIF|EMPTY|ENABLED|ENABLING|ENCODING|END|END-ENHANCEMENT-SECTION|END-LINES|END-OF-DEFINITION|END-OF-FILE|END-OF-PAGE|END-OF-SELECTION|ENDAT|ENDCASE|ENDCATCH|ENDCHAIN|ENDCLASS|ENDDO|ENDENHANCEMENT|ENDEXEC|ENDFOR|ENDFORM|ENDFUNCTION|ENDIAN|ENDIF|ENDING|ENDINTERFACE|ENDLOOP|ENDMETHOD|ENDMODULE|ENDON|ENDPROVIDE|ENDSELECT|ENDTRY|ENDWHILE|ENGINEERING|ENHANCEMENT|ENHANCEMENT-POINT|ENHANCEMENT-SECTION|ENHANCEMENTS|ENTRIES|ENTRY|ENVIRONMENT|EQ|EQUAL|EQUIV|ERRORMESSAGE|ERRORS|ESCAPE|ESCAPING|EVENT|EVENTS|EXACT|EXCEPT|EXCEPTION|EXCEPTION-TABLE|EXCEPTIONS|EXCLUDE|EXCLUDING|EXEC|EXECUTE|EXISTS|EXIT|EXIT-COMMAND|EXP|EXPAND|EXPANDING|EXPIRATION|EXPLICIT|EXPONENT|EXPORT|EXPORTING|EXTEND|EXTENDED|EXTENSION|EXTRACT|FAIL|FETCH|FIELD|FIELD-GROUPS|FIELD-SYMBOL|FIELD-SYMBOLS|FIELDS|FILE|FILTER|FILTER-TABLE|FILTERS|FINAL|FIND|FIRST|FIRST-LINE|FIXED-POINT|FKEQ|FKGE|FLOOR|FLUSH|FONT|FOR|FORM|FORMAT|FORWARD|FOUND|FRAC|FRAME|FRAMES|FREE|FRIENDS|FROM|FUNCTION|FUNCTION-POOL|FUNCTIONALITY|FURTHER|GAPS|GE|GENERATE|GET|GIVING|GKEQ|GKGE|GLOBAL|GRANT|GREATER|GREEN|GROUP|GROUPS|GT|HANDLE|HANDLER|HARMLESS|HASHED|HAVING|HDB|HEAD-LINES|HEADER|HEADERS|HEADING|HELP-ID|HELP-REQUEST|HIDE|HIGH|HINT|HOLD|HOTSPOT|I|ICON|ID|IDENTIFICATION|IDENTIFIER|IDS|IF|IGNORE|IGNORING|IMMEDIATELY|IMPLEMENTATION|IMPLEMENTATIONS|IMPLEMENTED|IMPLICIT|IMPORT|IMPORTING|IN|INACTIVE|INCL|INCLUDE|INCLUDES|INCLUDING|INCREMENT|INDEX|INDEX-LINE|INFOTYPES|INHERITING|INIT|INITIAL|INITIALIZATION|INNER|INOUT|INPUT|INSERT|INSTANCES|INTENSIFIED|INTERFACE|INTERFACE-POOL|INTERFACES|INTERNAL|INTERVALS|INTO|INVERSE|INVERTED-DATE|IS|ISO|ITERATOR|ITNO|JOB|JOIN|KEEP|KEEPING|KERNEL|KEY|KEYS|KEYWORDS|KIND|LANGUAGE|LAST|LATE|LAYOUT|LE|LEADING|LEAVE|LEFT|LEFT-JUSTIFIED|LEFTPLUS|LEFTSPACE|LEGACY|LENGTH|LESS|LET|LEVEL|LEVELS|LIKE|LINE|LINE-COUNT|LINE-SELECTION|LINE-SIZE|LINEFEED|LINES|LIST|LIST-PROCESSING|LISTBOX|LITTLE|LLANG|LOAD|LOAD-OF-PROGRAM|LOB|LOCAL|LOCALE|LOCATOR|LOG|LOG-POINT|LOG10|LOGFILE|LOGICAL|LONG|LOOP|LOW|LOWER|LPAD|LPI|LT|M|MAIL|MAIN|MAJOR-ID|MAPPING|MARGIN|MARK|MASK|MATCH|MATCHCODE|MAX|MAXIMUM|MEDIUM|MEMBERS|MEMORY|MESH|MESSAGE|MESSAGE-ID|MESSAGES|MESSAGING|METHOD|METHODS|MIN|MINIMUM|MINOR-ID|MM\/DD\/YY|MM\/DD\/YYYY|MMDDYY|MOD|MODE|MODIF|MODIFIER|MODIFY|MODULE|MOVE|MOVE-CORRESPONDING|MULTIPLY|MULTIPLY-CORRESPONDING|NA|NAME|NAMETAB|NATIVE|NB|NE|NESTED|NESTING|NEW|NEW-LINE|NEW-PAGE|NEW-SECTION|NEXT|NO|NO-DISPLAY|NO-EXTENSION|NO-GAP|NO-GAPS|NO-GROUPING|NO-HEADING|NO-SCROLLING|NO-SIGN|NO-TITLE|NO-TOPOFPAGE|NO-ZERO|NODE|NODES|NON-UNICODE|NON-UNIQUE|NOT|NP|NS|NULL|NUMBER|NUMOFCHAR|O|OBJECT|OBJECTS|OBLIGATORY|OCCURRENCE|OCCURRENCES|OCCURS|OF|OFF|OFFSET|OLE|ON|ONLY|OPEN|OPTION|OPTIONAL|OPTIONS|OR|ORDER|OTHER|OTHERS|OUT|OUTER|OUTPUT|OUTPUT-LENGTH|OVERFLOW|OVERLAY|PACK|PACKAGE|PAD|PADDING|PAGE|PAGES|PARAMETER|PARAMETER-TABLE|PARAMETERS|PART|PARTIALLY|PATTERN|PERCENTAGE|PERFORM|PERFORMING|PERSON|PF|PF-STATUS|PINK|PLACES|POOL|POSITION|POS_HIGH|POS_LOW|PRAGMAS|PRECOMPILED|PREFERRED|PRESERVING|PRIMARY|PRINT|PRINT-CONTROL|PRIORITY|PRIVATE|PROCEDURE|PROCESS|PROGRAM|PROPERTY|PROTECTED|PROVIDE|PUBLIC|PUSHBUTTON|PUT|QUEUE-ONLY|QUICKINFO|RADIOBUTTON|RAISE|RAISING|RANGE|RANGES|RAW|READ|READ-ONLY|READER|RECEIVE|RECEIVED|RECEIVER|RECEIVING|RED|REDEFINITION|REDUCE|REDUCED|REF|REFERENCE|REFRESH|REGEX|REJECT|REMOTE|RENAMING|REPLACE|REPLACEMENT|REPLACING|REPORT|REQUEST|REQUESTED|RESERVE|RESET|RESOLUTION|RESPECTING|RESPONSIBLE|RESULT|RESULTS|RESUMABLE|RESUME|RETRY|RETURN|RETURNCODE|RETURNING|RIGHT|RIGHT-JUSTIFIED|RIGHTPLUS|RIGHTSPACE|RISK|RMC_COMMUNICATION_FAILURE|RMC_INVALID_STATUS|RMC_SYSTEM_FAILURE|ROLE|ROLLBACK|ROUND|ROWS|RTTI|RUN|SAP|SAP-SPOOL|SAVING|SCALE_PRESERVING|SCALE_PRESERVING_SCIENTIFIC|SCAN|SCIENTIFIC|SCIENTIFIC_WITH_LEADING_ZERO|SCREEN|SCROLL|SCROLL-BOUNDARY|SCROLLING|SEARCH|SECONDARY|SECONDS|SECTION|SELECT|SELECT-OPTIONS|SELECTION|SELECTION-SCREEN|SELECTION-SET|SELECTION-SETS|SELECTION-TABLE|SELECTIONS|SELECTOR|SEND|SEPARATE|SEPARATED|SET|SHARED|SHIFT|SHORT|SHORTDUMP-ID|SIGN|SIGN_AS_POSTFIX|SIMPLE|SIN|SINGLE|SINH|SIZE|SKIP|SKIPPING|SMART|SOME|SORT|SORTABLE|SORTED|SOURCE|SPACE|SPECIFIED|SPLIT|SPOOL|SPOTS|SQL|SQLSCRIPT|SQRT|STABLE|STAMP|STANDARD|START-OF-SELECTION|STARTING|STATE|STATEMENT|STATEMENTS|STATIC|STATICS|STATUSINFO|STEP-LOOP|STOP|STRLEN|STRUCTURE|STRUCTURES|STYLE|SUBKEY|SUBMATCHES|SUBMIT|SUBROUTINE|SUBSCREEN|SUBSTRING|SUBTRACT|SUBTRACT-CORRESPONDING|SUFFIX|SUM|SUMMARY|SUMMING|SUPPLIED|SUPPLY|SUPPRESS|SWITCH|SWITCHSTATES|SYMBOL|SYNCPOINTS|SYNTAX|SYNTAX-CHECK|SYNTAX-TRACE|SYSTEM-CALL|SYSTEM-EXCEPTIONS|SYSTEM-EXIT|TAB|TABBED|TABLE|TABLES|TABLEVIEW|TABSTRIP|TAN|TANH|TARGET|TASK|TASKS|TEST|TESTING|TEXT|TEXTPOOL|THEN|THROW|TIME|TIMES|TIMESTAMP|TIMEZONE|TITLE|TITLE-LINES|TITLEBAR|TO|TOKENIZATION|TOKENS|TOP-LINES|TOP-OF-PAGE|TRACE-FILE|TRACE-TABLE|TRAILING|TRANSACTION|TRANSFER|TRANSFORMATION|TRANSLATE|TRANSPORTING|TRMAC|TRUNC|TRUNCATE|TRUNCATION|TRY|TYPE|TYPE-POOL|TYPE-POOLS|TYPES|ULINE|UNASSIGN|UNDER|UNICODE|UNION|UNIQUE|UNIT|UNIT_CONVERSION|UNIX|UNPACK|UNTIL|UNWIND|UP|UPDATE|UPPER|USER|USER-COMMAND|USING|UTF-8|VALID|VALUE|VALUE-REQUEST|VALUES|VARY|VARYING|VERIFICATION-MESSAGE|VERSION|VIA|VIEW|VISIBLE|WAIT|WARNING|WHEN|WHENEVER|WHERE|WHILE|WIDTH|WINDOW|WINDOWS|WITH|WITH-HEADING|WITH-TITLE|WITHOUT|WORD|WORK|WRITE|WRITER|X|XML|XOR|XSD|XSTRLEN|YELLOW|YES|YYMMDD|Z|ZERO|ZONE)(?![\w-])/i,
 		lookbehind: true
 	},
-	/* Numbers can be only integers. Decimal or Hex appear only as strings */
 	'number': /\b\d+\b/,
-	/* Operators must always be surrounded by whitespace, they cannot be put
-	adjacent to operands.
-	*/
 	'operator': {
 		pattern: /(\s)(?:\*\*?|<[=>]?|>=?|\?=|[-+\/=])(?=\s)/,
 		lookbehind: true
@@ -1754,16 +1107,13 @@ Prism.languages.abap = {
 	'string-operator': {
 		pattern: /(\s)&&?(?=\s)/,
 		lookbehind: true,
-		/* The official editor highlights */
 		alias: 'keyword'
 	},
 	'token-operator': [{
-		/* Special operators used to access structure components, class methods/attributes, etc. */
 		pattern: /(\w)(?:->?|=>|[~|{}])(?=\w)/,
 		lookbehind: true,
 		alias: 'punctuation'
 	}, {
-		/* Special tokens used do delimit string templates */
 		pattern: /[|{}]/,
 		alias: 'punctuation'
 	}],
@@ -1831,7 +1181,6 @@ Prism.languages.actionscript = Prism.languages.extend('javascript', {
 });
 Prism.languages.actionscript['class-name'].alias = 'function';
 
-// doesn't work with AS because AS is too complex
 delete Prism.languages.actionscript['parameter'];
 delete Prism.languages.actionscript['literal-property'];
 
@@ -1893,7 +1242,6 @@ Prism.languages.ada = {
 	};
 }(Prism));
 
-// based on https://github.com/microsoft/AL/blob/master/grammar/alsyntax.tmlanguage
 
 Prism.languages.al = {
 	'comment': /\/\/.*|\/\*[\s\S]*?\*\//,
@@ -1906,9 +1254,7 @@ Prism.languages.al = {
 		lookbehind: true
 	},
 	'keyword': [
-		// keywords
 		/\b(?:array|asserterror|begin|break|case|do|downto|else|end|event|exit|for|foreach|function|if|implements|in|indataset|interface|internal|local|of|procedure|program|protected|repeat|runonclient|securityfiltering|suppressdispose|temporary|then|to|trigger|until|var|while|with|withevents)\b/i,
-		// objects and metadata that are used like keywords
 		/\b(?:action|actions|addafter|addbefore|addfirst|addlast|area|assembly|chartpart|codeunit|column|controladdin|cuegroup|customizes|dataitem|dataset|dotnet|elements|enum|enumextension|extends|field|fieldattribute|fieldelement|fieldgroup|fieldgroups|fields|filter|fixed|grid|group|key|keys|label|labels|layout|modify|moveafter|movebefore|movefirst|movelast|page|pagecustomization|pageextension|part|profile|query|repeater|report|requestpage|schema|separator|systempart|table|tableelement|tableextension|textattribute|textelement|type|usercontrol|value|xmlport)\b/i
 	],
 	'number': /\b(?:0x[\da-f]+|(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?)(?:F|LL?|U(?:LL?)?)?\b/i,
@@ -1944,7 +1290,6 @@ Prism.languages.antlr4 = {
 		greedy: true,
 		inside: {
 			'content': {
-				// this might be C, C++, Python, Java, C#, or any other language ANTLR4 compiles to
 				pattern: /(\{)[\s\S]+(?=\})/,
 				lookbehind: true
 			},
@@ -2072,7 +1417,6 @@ Prism.languages.sql = {
 
 	var className = /\b(?:(?=[a-z_]\w*\s*[<\[])|(?!<keyword>))[A-Z_]\w*(?:\s*\.\s*[A-Z_]\w*)*\b(?:\s*(?:\[\s*\]|<(?:[^<>]|<(?:[^<>]|<[^<>]*>)*>)*>))*/.source
 		.replace(/<keyword>/g, function () { return keywords.source; });
-	/** @param {string} pattern */
 	function insertClassName(pattern) {
 		return RegExp(pattern.replace(/<CLASS-NAME>/g, function () { return className; }), 'i');
 	}
@@ -2104,13 +1448,11 @@ Prism.languages.sql = {
 				inside: classNameInside
 			},
 			{
-				// cast
 				pattern: insertClassName(/(\(\s*)<CLASS-NAME>(?=\s*\)\s*[\w(])/.source),
 				lookbehind: true,
 				inside: classNameInside
 			},
 			{
-				// variable/parameter declaration and return types
 				pattern: insertClassName(/<CLASS-NAME>(?=\s*\w+\s*[;=,(){:])/.source),
 				inside: classNameInside
 			}
@@ -2167,7 +1509,6 @@ Prism.languages.apl = {
 
 Prism.languages.applescript = {
 	'comment': [
-		// Allow one level of nesting
 		/\(\*(?:\(\*(?:[^*]|\*(?!\)))*\*\)|(?!\(\*)[\s\S])*?\*\)/,
 		/--.+/,
 		/#.+/
@@ -2205,7 +1546,6 @@ Prism.languages.aql = {
 			lookbehind: true
 		},
 		/\b(?:AGGREGATE|ALL|AND|ANY|ASC|COLLECT|DESC|DISTINCT|FILTER|FOR|GRAPH|IN|INBOUND|INSERT|INTO|K_PATHS|K_SHORTEST_PATHS|LET|LIKE|LIMIT|NONE|NOT|NULL|OR|OUTBOUND|REMOVE|REPLACE|RETURN|SHORTEST_PATH|SORT|UPDATE|UPSERT|WINDOW|WITH)\b/i,
-		// pseudo keywords get a lookbehind to avoid false positives
 		{
 			pattern: /(^|[^\w.[])(?:KEEP|PRUNE|SEARCH|TO)\b/i,
 			lookbehind: true
@@ -2239,7 +1579,6 @@ Prism.languages.c = Prism.languages.extend('clike', {
 		greedy: true
 	},
 	'string': {
-		// https://en.cppreference.com/w/c/language/string_literal
 		pattern: /"(?:\\(?:\r\n|[\s\S])|[^"\\\r\n])*"/,
 		greedy: true
 	},
@@ -2255,7 +1594,6 @@ Prism.languages.c = Prism.languages.extend('clike', {
 
 Prism.languages.insertBefore('c', 'string', {
 	'char': {
-		// https://en.cppreference.com/w/c/language/character_constant
 		pattern: /'(?:\\(?:\r\n|[\s\S])|[^'\\\r\n]){0,32}'/,
 		greedy: true
 	}
@@ -2263,8 +1601,6 @@ Prism.languages.insertBefore('c', 'string', {
 
 Prism.languages.insertBefore('c', 'string', {
 	'macro': {
-		// allow for multiline macro definitions
-		// spaces after the # character compile fine with gcc
 		pattern: /(^[\t ]*)#\s*[a-z](?:[^\r\n\\/]|\/(?!\*)|\/\*(?:[^*]|\*(?!\/))*\*\/|\\(?:\r\n|[\s\S]))*/im,
 		lookbehind: true,
 		greedy: true,
@@ -2272,7 +1608,6 @@ Prism.languages.insertBefore('c', 'string', {
 		inside: {
 			'string': [
 				{
-					// highlight the path of the include statement as a string
 					pattern: /^(#\s*include\s*)<[^>]+>/,
 					lookbehind: true
 				},
@@ -2291,7 +1626,6 @@ Prism.languages.insertBefore('c', 'string', {
 					alias: 'function'
 				}
 			],
-			// highlight macro directives as keywords
 			'directive': {
 				pattern: /^(#\s*)[a-z]+/,
 				lookbehind: true,
@@ -2308,7 +1642,6 @@ Prism.languages.insertBefore('c', 'string', {
 });
 
 Prism.languages.insertBefore('c', 'function', {
-	// highlight predefined macros as constants
 	'constant': /\b(?:EOF|NULL|SEEK_CUR|SEEK_END|SEEK_SET|__DATE__|__FILE__|__LINE__|__TIMESTAMP__|__TIME__|__func__|stderr|stdin|stdout)\b/
 });
 
@@ -2326,16 +1659,8 @@ delete Prism.languages.c['boolean'];
 					.replace(/<keyword>/g, function () { return keyword.source; })),
 				lookbehind: true
 			},
-			// This is intended to capture the class name of method implementations like:
-			//   void foo::bar() const {}
-			// However! The `foo` in the above example could also be a namespace, so we only capture the class name if
-			// it starts with an uppercase letter. This approximation should give decent results.
 			/\b[A-Z]\w*(?=\s*::\s*\w+\s*\()/,
-			// This will capture the class name before destructors like:
-			//   Foo::~Foo() {}
 			/\b[A-Z_]\w*(?=\s*::\s*~\w+\s*\()/i,
-			// This also intends to capture the class name of method implementations but here the class has template
-			// parameters, so it can't be a namespace (until C++ adds generic namespaces).
 			/\b\w+(?=\s*<(?:[^<>]|<(?:[^<>]|<[^<>]*>)*>)*>\s*::\s*\w+\s*\()/
 		],
 		'keyword': keyword,
@@ -2349,14 +1674,11 @@ delete Prism.languages.c['boolean'];
 
 	Prism.languages.insertBefore('cpp', 'string', {
 		'module': {
-			// https://en.cppreference.com/w/cpp/language/modules
 			pattern: RegExp(
 				/(\b(?:import|module)\s+)/.source +
 				'(?:' +
-				// header-name
 				/"(?:\\(?:\r\n|[\s\S])|[^"\\\r\n])*"|<[^<>\r\n]*>/.source +
 				'|' +
-				// module name or partition or both
 				/<mod-name>(?:\s*:\s*<mod-name>)?|:\s*<mod-name>/.source.replace(/<mod-name>/g, function () { return modName; }) +
 				')'
 			),
@@ -2397,8 +1719,6 @@ delete Prism.languages.c['boolean'];
 	});
 
 	Prism.languages.insertBefore('cpp', 'class-name', {
-		// the base clause is an optional list of parent classes
-		// https://en.cppreference.com/w/cpp/language/class
 		'base-clause': {
 			pattern: /(\b(?:class|struct)\s+\w+\s*:\s*)[^;{}"'\s]+(?:\s+[^;{}"'\s]+)*(?=\s*[;{])/,
 			lookbehind: true,
@@ -2408,7 +1728,7 @@ delete Prism.languages.c['boolean'];
 	});
 
 	Prism.languages.insertBefore('inside', 'double-colon', {
-		// All untokenized words that are not namespaces should be class names
+
 		'class-name': /\b[a-z_]\w*\b(?!\s*::)/i
 	}, Prism.languages.cpp['base-clause']);
 
@@ -2484,10 +1804,6 @@ Prism.languages.armasm = {
 Prism.languages['arm-asm'] = Prism.languages.armasm;
 
 (function (Prism) {
-	/**
-	 * @param {string} lang
-	 * @param {string} pattern
-	 */
 	var createLanguageString = function (lang, pattern) {
 		return {
 			pattern: RegExp(/\{!/.source + '(?:' + (pattern || lang) + ')' + /$[\s\S]*\}/.source, 'm'),
@@ -2605,14 +1921,12 @@ Prism.languages['arm-asm'] = Prism.languages.armasm;
 				pattern: /'(?:[^'\\]|\\.)*'/,
 				inside: {
 					'punctuation': /^'|'$/
-					// See rest below
 				}
 			},
 			'string': /"(?:[^"\\]|\\.)*"/,
 			'variable': /\w+(?==)/,
 			'punctuation': /^\[|\]$|,/,
 			'operator': /=/,
-			// The negative look-ahead prevents blank matches
 			'attr-value': /(?!^\s+$).+/
 		}
 	};
@@ -2633,7 +1947,6 @@ Prism.languages['arm-asm'] = Prism.languages.armasm;
 					pattern: /(^|[^\\])[|!]=*/,
 					lookbehind: true
 				}
-				// See rest below
 			}
 		},
 
@@ -2641,27 +1954,21 @@ Prism.languages['arm-asm'] = Prism.languages.armasm;
 			pattern: /^(\+{4,})$[\s\S]*?^\1$/m,
 			inside: {
 				'punctuation': /^\++|\++$/
-				// See rest below
 			}
 		},
-		// Literal blocks and listing blocks
 		'literal-block': {
 			pattern: /^(-{4,}|\.{4,})$[\s\S]*?^\1$/m,
 			inside: {
 				'punctuation': /^(?:-+|\.+)|(?:-+|\.+)$/
-				// See rest below
 			}
 		},
-		// Sidebar blocks, quote blocks, example blocks and open blocks
 		'other-block': {
 			pattern: /^(--|\*{4,}|_{4,}|={4,})$[\s\S]*?^\1$/m,
 			inside: {
 				'punctuation': /^(?:-+|\*+|_+|=+)|(?:-+|\*+|_+|=+)$/
-				// See rest below
 			}
 		},
 
-		// list-punctuation and list-label must appear before indented-block
 		'list-punctuation': {
 			pattern: /(^[ \t]*)(?:-|\*{1,5}|\.{1,5}|(?:[a-z]|\d+)\.|[xvi]+\))(?= )/im,
 			lookbehind: true,
@@ -2683,7 +1990,6 @@ Prism.languages['arm-asm'] = Prism.languages.armasm;
 			alias: 'important',
 			inside: {
 				'punctuation': /^(?:\.|=+)|(?:=+|-+|~+|\^+|\++)$/
-				// See rest below
 			}
 		},
 		'attribute-entry': {
@@ -2726,20 +2032,6 @@ Prism.languages['arm-asm'] = Prism.languages.armasm;
 			}
 		},
 		'inline': {
-			/*
-			The initial look-behind prevents the highlighting of escaped quoted text.
-
-			Quoted text can be multi-line but cannot span an empty line.
-			All quoted text can have attributes before [foobar, 'foobar', baz="bar"].
-
-			First, we handle the constrained quotes.
-			Those must be bounded by non-word chars and cannot have spaces between the delimiter and the first char.
-			They are, in order: _emphasis_, ``double quotes'', `single quotes', `monospace`, 'emphasis', *strong*, +monospace+ and #unquoted#
-
-			Then we handle the unconstrained quotes.
-			Those do not have the restrictions of the constrained quotes.
-			They are, in order: __emphasis__, **strong**, ++monospace++, +++passthrough+++, ##unquoted##, $$passthrough$$, ~subscript~, ^superscript^, {attribute-reference}, [[anchor]], [[[bibliography anchor]]], <<xref>>, (((indexes))) and ((indexes))
-			 */
 			pattern: /(^|[^\\])(?:(?:\B\[(?:[^\]\\"']|(["'])(?:(?!\2)[^\\]|\\.)*\2|\\.)*\])?(?:\b_(?!\s)(?: _|[^_\\\r\n]|\\.)+(?:(?:\r?\n|\r)(?: _|[^_\\\r\n]|\\.)+)*_\b|\B``(?!\s).+?(?:(?:\r?\n|\r).+?)*''\B|\B`(?!\s)(?:[^`'\s]|\s+\S)+['`]\B|\B(['*+#])(?!\s)(?: \3|(?!\3)[^\\\r\n]|\\.)+(?:(?:\r?\n|\r)(?: \3|(?!\3)[^\\\r\n]|\\.)+)*\3\B)|(?:\[(?:[^\]\\"']|(["'])(?:(?!\4)[^\\]|\\.)*\4|\\.)*\])?(?:(__|\*\*|\+\+\+?|##|\$\$|[~^]).+?(?:(?:\r?\n|\r).+?)*\5|\{[^}\r\n]+\}|\[\[\[?.+?(?:(?:\r?\n|\r).+?)*\]?\]\]|<<.+?(?:(?:\r?\n|\r).+?)*>>|\(\(\(?.+?(?:(?:\r?\n|\r).+?)*\)?\)\)))/m,
 			lookbehind: true,
 			inside: {
@@ -2788,9 +2080,6 @@ Prism.languages['arm-asm'] = Prism.languages.armasm;
 		}
 	};
 
-
-	// Allow some nesting. There is no recursion though, so cloning should not be needed.
-
 	function copyFromAsciiDoc(keys) {
 		keys = keys.split(' ');
 
@@ -2813,8 +2102,6 @@ Prism.languages['arm-asm'] = Prism.languages.armasm;
 
 	asciidoc['title'].inside.rest = copyFromAsciiDoc('macro inline replacement entity');
 
-
-	// Plugin to make entity title show the real entity, idea by Roman Komarov
 	Prism.hooks.add('wrap', function (env) {
 		if (env.type === 'entity') {
 			env.attributes['title'] = env.content.replace(/&amp;/, '&');
@@ -2826,38 +2113,16 @@ Prism.languages['arm-asm'] = Prism.languages.armasm;
 
 (function (Prism) {
 
-	/**
-	 * Replaces all placeholders "<<n>>" of given pattern with the n-th replacement (zero based).
-	 *
-	 * Note: This is a simple text based replacement. Be careful when using backreferences!
-	 *
-	 * @param {string} pattern the given pattern.
-	 * @param {string[]} replacements a list of replacement which can be inserted into the given pattern.
-	 * @returns {string} the pattern with all placeholders replaced with their corresponding replacements.
-	 * @example replace(/a<<0>>a/.source, [/b+/.source]) === /a(?:b+)a/.source
-	 */
 	function replace(pattern, replacements) {
 		return pattern.replace(/<<(\d+)>>/g, function (m, index) {
 			return '(?:' + replacements[+index] + ')';
 		});
 	}
-	/**
-	 * @param {string} pattern
-	 * @param {string[]} replacements
-	 * @param {string} [flags]
-	 * @returns {RegExp}
-	 */
+
 	function re(pattern, replacements, flags) {
 		return RegExp(replace(pattern, replacements), flags || '');
 	}
 
-	/**
-	 * Creates a nested pattern where all occurrences of the string `<<self>>` are replaced with the pattern itself.
-	 *
-	 * @param {string} pattern
-	 * @param {number} depthLog2
-	 * @returns {string}
-	 */
 	function nested(pattern, depthLog2) {
 		for (var i = 0; i < depthLog2; i++) {
 			pattern = pattern.replace(/<<self>>/g, function () { return '(?:' + pattern + ')'; });
@@ -2865,20 +2130,13 @@ Prism.languages['arm-asm'] = Prism.languages.armasm;
 		return pattern.replace(/<<self>>/g, '[^\\s\\S]');
 	}
 
-	// https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/
 	var keywordKinds = {
-		// keywords which represent a return or variable type
 		type: 'bool byte char decimal double dynamic float int long object sbyte short string uint ulong ushort var void',
-		// keywords which are used to declare a type
 		typeDeclaration: 'class enum interface record struct',
-		// contextual keywords
-		// ("var" and "dynamic" are missing because they are used like types)
 		contextual: 'add alias and ascending async await by descending from(?=\\s*(?:\\w|$)) get global group into init(?=\\s*;) join let nameof not notnull on or orderby partial remove select set unmanaged value when where with(?=\\s*{)',
-		// all other keywords
 		other: 'abstract as base break case catch checked const continue default delegate do else event explicit extern finally fixed for foreach goto if implicit in internal is lock namespace new null operator out override params private protected public readonly ref return sealed sizeof stackalloc static switch this throw try typeof unchecked unsafe using virtual volatile while yield'
 	};
 
-	// keywords
 	function keywordsToPattern(words) {
 		return '\\b(?:' + words.trim().replace(/ /g, '|') + ')\\b';
 	}
@@ -2887,8 +2145,7 @@ Prism.languages['arm-asm'] = Prism.languages.armasm;
 	var nonTypeKeywords = keywordsToPattern(keywordKinds.typeDeclaration + ' ' + keywordKinds.contextual + ' ' + keywordKinds.other);
 	var nonContextualKeywords = keywordsToPattern(keywordKinds.type + ' ' + keywordKinds.typeDeclaration + ' ' + keywordKinds.other);
 
-	// types
-	var generic = nested(/<(?:[^<>;=+\-*/%&|^]|<<self>>)*>/.source, 2); // the idea behind the other forbidden characters is to prevent false positives. Same for tupleElement.
+	var generic = nested(/<(?:[^<>;=+\-*/%&|^]|<<self>>)*>/.source, 2);
 	var nestedRound = nested(/\((?:[^()]|<<self>>)*\)/.source, 2);
 	var name = /@?\b[A-Za-z_]\w*\b/.source;
 	var genericName = replace(/<<0>>(?:\s*<<1>>)?/.source, [name, generic]);
@@ -2904,10 +2161,7 @@ Prism.languages['arm-asm'] = Prism.languages.armasm;
 		'punctuation': /[<>()?,.:[\]]/
 	};
 
-	// strings & characters
-	// https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/lexical-structure#character-literals
-	// https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/lexical-structure#string-literals
-	var character = /'(?:[^\r\n'\\]|\\.|\\[Uux][\da-fA-F]{1,8})'/.source; // simplified pattern
+	var character = /'(?:[^\r\n'\\]|\\.|\\[Uux][\da-fA-F]{1,8})'/.source; 
 	var regularString = /"(?:\\.|[^\\"\r\n])*"/.source;
 	var verbatimString = /@"(?:""|\\[\s\S]|[^\\"])*"(?!")/.source;
 
@@ -2927,44 +2181,30 @@ Prism.languages['arm-asm'] = Prism.languages.armasm;
 		],
 		'class-name': [
 			{
-				// Using static
-				// using static System.Math;
 				pattern: re(/(\busing\s+static\s+)<<0>>(?=\s*;)/.source, [identifier]),
 				lookbehind: true,
 				inside: typeInside
 			},
 			{
-				// Using alias (type)
-				// using Project = PC.MyCompany.Project;
 				pattern: re(/(\busing\s+<<0>>\s*=\s*)<<1>>(?=\s*;)/.source, [name, typeExpression]),
 				lookbehind: true,
 				inside: typeInside
 			},
 			{
-				// Using alias (alias)
-				// using Project = PC.MyCompany.Project;
 				pattern: re(/(\busing\s+)<<0>>(?=\s*=)/.source, [name]),
 				lookbehind: true
 			},
 			{
-				// Type declarations
-				// class Foo<A, B>
-				// interface Foo<out A, B>
 				pattern: re(/(\b<<0>>\s+)<<1>>/.source, [typeDeclarationKeywords, genericName]),
 				lookbehind: true,
 				inside: typeInside
 			},
 			{
-				// Single catch exception declaration
-				// catch(Foo)
-				// (things like catch(Foo e) is covered by variable declaration)
 				pattern: re(/(\bcatch\s*\(\s*)<<0>>/.source, [identifier]),
 				lookbehind: true,
 				inside: typeInside
 			},
 			{
-				// Name of the type parameter of generic constraints
-				// where Foo : class
 				pattern: re(/(\bwhere\s+)<<0>>/.source, [name]),
 				lookbehind: true
 			},
